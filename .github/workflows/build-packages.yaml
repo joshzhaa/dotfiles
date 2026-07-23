@@ -12,7 +12,8 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/magic-nix-cache-action@55718cd9ebf1737a061487d5ada21abf31e99a98
 
-      - run: |
+      - name: Build packages and copy to archive
+        run: |
           mkdir -p nix-archive
 
           nix build .#plasma-final

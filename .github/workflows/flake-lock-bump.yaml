@@ -1,4 +1,4 @@
-name: "Bump flake.lock"
+name: "Bump flake inputs"
 
 on:
   workflow_dispatch: # allows manual triggering

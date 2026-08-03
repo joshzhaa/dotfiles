@@ -19,6 +19,9 @@ _: {
         tree-sitter
       ];
 
+      # overriding the most baffling default in nixos
+      environment.defaultPackages = [ ];
+
     };
 
     desktop-packages = { pkgs, ... }: {

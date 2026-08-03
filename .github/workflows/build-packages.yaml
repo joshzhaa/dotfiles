@@ -16,10 +16,8 @@ jobs:
         run: |
           mkdir -p nix-archive
 
-          nix build .#plasma-final
+          nix build .#nixosConfigurations.laptop.config.system.build.toplevel
           nix copy --to file://$PWD/nix-archive $(readlink result)
-          #nix build .#plasma-prev
-          #nix copy --to file://$PWD/nix-archive $(readlink result)
 
       - uses: actions/upload-artifact@v7
         with:

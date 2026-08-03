@@ -16,9 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: DeterminateSystems/determinate-nix-action@v3
+      - name: Get Current Date
+        id: date
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - uses: DeterminateSystems/update-flake-lock@ec13d37c32ca75bc750ecc133e944e5a18164688
         with:
-          pr-title: "bump: flake inputs"
+          pr-title: "chore: update flake inputs (${{ steps.date.outputs.date }})"
+          pr-branch: "update-flake-lock-${{ steps.date.outputs.date }}"
           pr-labels: |
             dependencies
             automated
+

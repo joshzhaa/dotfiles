@@ -18,8 +18,8 @@ jobs:
 
           nix build .#plasma-final
           nix copy --to file://$PWD/nix-archive $(readlink result)
-          nix build .#plasma-prev
-          nix copy --to file://$PWD/nix-archive $(readlink result)
+          #nix build .#plasma-prev
+          #nix copy --to file://$PWD/nix-archive $(readlink result)
 
       - uses: actions/upload-artifact@v7
         with:

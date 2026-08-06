@@ -29,6 +29,7 @@ _: {
       environment.systemPackages = with pkgs; [
         obsidian
         alacritty
+        ghostty
         chromium
       ];
 

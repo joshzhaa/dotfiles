@@ -15,7 +15,7 @@ setopt interactivecomments
 bindkey '^I' complete-word # tab -> complete
 bindkey '^[[Z' autosuggest-accept # shift + tab -> autosuggest
 
-# comments being balck on black is a horrific default
+# comments being black on black is a horrific default
 ZSH_HIGHLIGHT_STYLES[comment]='fg=white,dimmed'
 
 bindkey '^[0A' up-line-or-history

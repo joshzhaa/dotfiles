@@ -1,9 +1,9 @@
 { config, inputs, ... }: {
 
   flake.nixosConfigurations.laptop = inputs.nixpkgs.lib.nixosSystem {
-    modules = [
-      config.flake.nixosModules.host-laptop
-      config.flake.nixosModules.host-laptop-hardware
+    modules = with config.flake.nixosModules; [
+      host-laptop
+      host-laptop-hardware
     ];
   };
 
@@ -16,10 +16,11 @@
         terminal-nixos
         locale
         sound
+        sway
         nix
       ];
 
-      nixpkgs.overlays = [ config.flake.overlays.kde ];
+      # nixpkgs.overlays = [ config.flake.overlays.kde ];
 
       boot.loader.systemd-boot.enable = true;
       boot.loader.efi.canTouchEfiVariables = true;
@@ -31,12 +32,6 @@
       };
 
       services = {
-        # Enable the KDE Plasma Desktop Environment.
-        displayManager.plasma-login-manager.enable = true;
-        desktopManager.plasma6.enable = true;
-
-        system76-scheduler.enable = true;
-
         # Enable CUPS to print documents.
         printing.enable = true;
       };
@@ -54,7 +49,9 @@
 
       programs.chromium.enable = true;
 
-      fonts.packages = [ pkgs.nerd-fonts.hack ];
+      fonts.packages = with pkgs.nerd-fonts; [
+        jetbrains-mono
+      ];
 
       system.stateVersion = "26.05";
     };

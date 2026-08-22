@@ -1,9 +1,11 @@
 { self, inputs, ... }: {
   perSystem = { pkgs, system, ... }: {
-    # for building on a more powerful machine, then `nix copy`ing it.
-    # this one often gets OOMed, so remember --max-jobs.
-    packages.plasma-final = pkgs.kdePackages.plasma-workspace;
-    packages.plasma-prev = inputs.nixpkgs.legacyPackages.${system}.kdePackages.plasma-workspace;
+    packages = {
+      plasma-final = pkgs.kdePackages.plasma-workspace;
+      plasma-prev = inputs.nixpkgs.legacyPackages.${system}.kdePackages.plasma-workspace;
+
+      sway-status = pkgs.callPackage ../pkgs/sway-status/package.nix { };
+    };
 
     _module.args.pkgs = import inputs.nixpkgs {
       inherit system;

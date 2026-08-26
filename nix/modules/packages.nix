@@ -1,16 +1,10 @@
-{ self, inputs, ... }: {
-  perSystem = { pkgs, system, ... }: {
-    packages = {
-      plasma-final = pkgs.kdePackages.plasma-workspace;
-      plasma-prev = inputs.nixpkgs.legacyPackages.${system}.kdePackages.plasma-workspace;
+_: {
+  perSystem = { pkgs, ... }: {
+    packages = rec {
+      # std.pcm for `import std` in c++
+      std-pcm = pkgs.callPackage ../pkgs/std-pcm/package.nix { };
 
-      sway-status = pkgs.callPackage ../pkgs/sway-status/package.nix { };
-    };
-
-    _module.args.pkgs = import inputs.nixpkgs {
-      inherit system;
-      overlays = [ self.overlays.kde ];
-      config.allowUnfree = true;
+      statusline = pkgs.callPackage ../pkgs/statusline/package.nix { inherit std-pcm; };
     };
   };
 }

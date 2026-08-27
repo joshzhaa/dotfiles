@@ -1,4 +1,5 @@
 #include <spawn.h>
+#include <stdio.h>
 
 import std;
 
@@ -51,6 +52,7 @@ auto battery_charge() -> std::tuple<i32, std::string_view> {
 void print_status() {
   auto [charge, charge_icon] = battery_charge();
   std::println("{} {}%", charge_icon, charge);
+  std::fflush(stdout);
 }
 
 auto main(int argc, char **argv) -> int {
@@ -59,6 +61,6 @@ auto main(int argc, char **argv) -> int {
 
   while (true) {
     print_status();
-    std::this_thread::sleep_for(45s);
+    std::this_thread::sleep_for(30s);
   }
 }

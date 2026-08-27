@@ -1,5 +1,5 @@
 _: {
-  flake.nixosModules.sway = { pkgs, ... }: {
+  flake.nixosModules.sway = { pkgs, self', ... }: {
     # Sway WM
     programs.sway = {
       enable = true;
@@ -10,6 +10,7 @@ _: {
     environment.systemPackages = with pkgs; [
       wl-clipboard # clipboard, obviously
       mako # notifications
+      self'.packages.statusline # for swaybar
     ];
 
     services = {

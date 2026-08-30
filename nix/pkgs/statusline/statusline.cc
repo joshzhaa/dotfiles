@@ -1,4 +1,7 @@
+// a basic swaybar status line program.
+
 #include <spawn.h>
+// <stdio.h> needed to get `stdout` which is a preprocessor macro, shockingly
 #include <stdio.h>
 
 import std;
@@ -27,8 +30,9 @@ struct File {
 };
 
 using i32 = std::int32_t;
+using usize = std::size_t;
 
-/* MAIN LOGIC */
+/* "BUSINESS-LOGIC" COMPONENTS */
 
 [[nodiscard]]
 auto battery_charge() -> std::tuple<i32, std::string_view> {
@@ -42,16 +46,29 @@ auto battery_charge() -> std::tuple<i32, std::string_view> {
 
   auto file = File{BATTERY_CAPACITY};
 
-  i32 capacity;
-  i32 n = std::fscanf(file.fp, "%d", &capacity);
+  usize capacity;
+  i32 n = std::fscanf(file.fp, "%zu", &capacity);
   assert(n == 1);
-  auto icon_index = static_cast<std::size_t>(capacity / 20);
-  return {capacity, icon_index >= ICONS.size() ? ICONS.back() : ICONS.at(icon_index)};
+  auto icon_index = std::clamp(capacity / 20uz, 0uz, ICONS.size());
+  return {capacity, ICONS.at(icon_index)};
 }
+
+/* I/O */
+
+// Needs to be synchronized with the catppuccin mocha theme
+namespace mocha {
+  constexpr std::string_view MAUVE = "#cba6f7";
+}
+
+constexpr std::string_view TEST_TEXT = R"(  [
+    {"full_text": "Load: $load_avg", "color": "#00ff00"},
+    {"full_text": "$date_formatted"}
+  ],
+)";
 
 void print_status() {
   auto [charge, charge_icon] = battery_charge();
-  std::println("{} {}%", charge_icon, charge);
+  std::print("{}", TEST_TEXT);
   std::fflush(stdout);
 }
 
@@ -59,8 +76,14 @@ auto main(int argc, char **argv) -> int {
   using namespace std::chrono_literals;
   auto args = std::span{argv, static_cast<std::size_t>(argc)};
 
+  constexpr std::string_view PROTOCOL_HEADER = R"({ "version": 1 })";
+  std::println("{}", PROTOCOL_HEADER);
+  std::fflush(stdout);
+  std::println("["); // start the infinite JSON list
+  std::fflush(stdout);
+
   while (true) {
     print_status();
-    std::this_thread::sleep_for(30s);
+    std::this_thread::sleep_for(10s);
   }
 }

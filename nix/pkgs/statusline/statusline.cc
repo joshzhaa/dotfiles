@@ -57,21 +57,25 @@ auto battery_charge() -> std::tuple<i32, std::string_view> {
 
 // Needs to be synchronized with the catppuccin mocha theme
 namespace mocha {
+
   constexpr std::string_view MAUVE = "#cba6f7";
+
 }
 
-constexpr std::string_view TEST_TEXT = R"(  [
-    {"full_text": "Load: $load_avg", "color": "#00ff00"},
-    {"full_text": "$date_formatted"}
-  ],
-)";
+/// a "status line" for swaybar is a JSON array of objects.
+/// each object is a "block" for swaybar.
+void print_status_line() {
+  std::println("["); // start status line
 
-/// a "block" for swaybar is a JSON array of objects
-void print_block() {
-  std::println("["); // start block
+  // battery block
   auto [charge_percent, charge_icon] = battery_charge();
-  std::println(R"({{ "full_text": "{} {}%" }})", charge_icon, charge_percent);
-  std::println("],"); // end block
+  std::println(
+    R"({{ "full_text": "{} {}%" }})",
+    charge_icon,
+    charge_percent //
+  );
+
+  std::println("],"); // end status line
   std::fflush(stdout);
 }
 
@@ -86,7 +90,7 @@ auto main(int argc, char **argv) -> int {
   std::fflush(stdout);
 
   while (true) {
-    print_block();
+    print_status_line();
     std::this_thread::sleep_for(10s);
   }
 }

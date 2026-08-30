@@ -8,7 +8,9 @@ input "type:keyboard" {
     xkb_options caps:escape
 }
 
-font pango:JetBrainsMono Nerd Font Mono 12
+# make sure not to use the "Mono" variant of a nerd font, or else
+# the icons will be way too small. ask me how i know.
+font pango:JetBrainsMono Nerd Font Propo 12
 
 # Default config for sway
 #

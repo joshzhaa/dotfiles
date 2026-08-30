@@ -66,9 +66,12 @@ constexpr std::string_view TEST_TEXT = R"(  [
   ],
 )";
 
-void print_status() {
-  auto [charge, charge_icon] = battery_charge();
-  std::print("{}", TEST_TEXT);
+/// a "block" for swaybar is a JSON array of objects
+void print_block() {
+  std::println("["); // start block
+  auto [charge_percent, charge_icon] = battery_charge();
+  std::println(R"({{ "full_text": "{} {}%" }})", charge_icon, charge_percent);
+  std::println("],"); // end block
   std::fflush(stdout);
 }
 
@@ -83,7 +86,7 @@ auto main(int argc, char **argv) -> int {
   std::fflush(stdout);
 
   while (true) {
-    print_status();
+    print_block();
     std::this_thread::sleep_for(10s);
   }
 }

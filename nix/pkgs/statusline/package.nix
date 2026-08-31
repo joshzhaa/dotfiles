@@ -13,4 +13,4 @@ let
     '';
   };
 in
-writeCXX "statusline" ./statusline.cc
+writeCXX "/bin/statusline" ./statusline.cc

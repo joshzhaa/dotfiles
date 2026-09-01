@@ -1,7 +1,7 @@
 // a basic swaybar status line program.
 
 #include <spawn.h>
-// <stdio.h> needed to get `stdout` which is a preprocessor macro, shockingly
+// <stdio.h> needed to get `stdout` which standardized as a preprocessor macro, shockingly
 #include <stdio.h>
 
 import std;
@@ -10,6 +10,7 @@ import std;
 constexpr std::string_view BATTERY_CAPACITY = "/sys/class/power_supply/BAT1/capacity";
 constexpr std::string_view BATTERY_STATUS = "/sys/class/power_supply/BAT1/status";
 constexpr std::string_view VOLUME_COMMAND = "wpctl get-volume @DEFAULT_AUDIO_SINK@";
+constexpr auto TZ_OFFSET = std::chrono::hours{4}; // from system_clock::now()
 
 /* HELPERS */
 void assert(bool condition) {
@@ -35,22 +36,47 @@ using usize = std::size_t;
 /* "BUSINESS-LOGIC" COMPONENTS */
 
 [[nodiscard]]
-auto battery_charge() -> std::tuple<i32, std::string_view> {
-  constexpr static std::array<char const *, 5> ICONS = std::array{
-    "", // 20%
-    "", // 40%
-    "", // 60%
-    "", // 80%
-    "", // 100%
+auto battery_charge() -> std::string {
+  constexpr static auto ICONS = std::array{"", "", "", "", ""};
+  constexpr static auto CHARGING_ICON = " 󱐋 ";
+
+  auto read_capacity_file = []() {
+    auto file = File{BATTERY_CAPACITY};
+    usize capacity;
+    i32 n = std::fscanf(file.fp, "%zu", &capacity);
+    assert(n == 1);
+    return capacity;
   };
 
-  auto file = File{BATTERY_CAPACITY};
+  auto read_status_file = []() {
+    auto file = File{BATTERY_STATUS};
+    constexpr usize BUFSIZE = 32;
+    std::array<char, BUFSIZE> buffer;
+    i32 n = std::fscanf(file.fp, "%31s", buffer.data());
+    assert(n == 1);
+    return std::string{buffer.data()};
+  };
 
-  usize capacity;
-  i32 n = std::fscanf(file.fp, "%zu", &capacity);
-  assert(n == 1);
+  usize capacity = read_capacity_file();
+  auto status = read_status_file();
+
   auto icon_index = std::clamp(capacity / 20uz, 0uz, ICONS.size());
-  return {capacity, ICONS.at(icon_index)};
+  bool is_charging = status == "Charging";
+
+  return std::format(
+    "{}{}{}%",
+    ICONS.at(icon_index),
+    is_charging ? CHARGING_ICON : " ",
+    capacity //
+  );
+}
+
+[[nodiscard]]
+auto date_time() -> std::string {
+  auto system_time = std::chrono::system_clock::now();
+  // TODO: replace with std whenever libc++ actually implements it
+  auto local_time = system_time - TZ_OFFSET;
+  return std::format(" {:%m/%d %H:%M}", local_time);
 }
 
 /* I/O */
@@ -62,20 +88,28 @@ namespace mocha {
   constexpr std::string_view GREEN = "#a6e3a1";
   constexpr std::string_view YELLOW = "#f9e2af";
   constexpr std::string_view TEAL = "#94e2d5";
+  constexpr std::string_view ROSEWATER = "#f5e0dc";
+  constexpr std::string_view RED = "#f38ba8";
 } // namespace mocha
 
-/// a "status line" for swaybar is a JSON array of objects.
-/// each object is a "block" for swaybar.
+/// a "status line" for swaybar is a JSON array of objects. each object is a "block" for swaybar.
 void print_status_line() {
   std::println("["); // start status line
 
   // battery block
-  auto [charge_percent, charge_icon] = battery_charge();
   std::println(
-    R"({{ "full_text": "{} {}%", "color": "{}" }})",
-    charge_icon,
-    charge_percent,
-    mocha::TEAL //
+    R"({{ "full_text": " {} ", "background": "{}", "color": "{}", "separator_block_width": 0 }},)",
+    battery_charge(),
+    mocha::RED,
+    mocha::CRUST //
+  );
+
+  // date time block
+  std::println(
+    R"({{ "full_text": " {} ", "background": "{}", "color": "{}", "separator_block_width": 0 }})",
+    date_time(),
+    mocha::MAUVE,
+    mocha::CRUST //
   );
 
   std::println("],"); // end status line
@@ -84,16 +118,17 @@ void print_status_line() {
 
 auto main(int argc, char **argv) -> int {
   using namespace std::chrono_literals;
+  // TODO: do we actually need args?
   auto args = std::span{argv, static_cast<std::size_t>(argc)};
 
   constexpr std::string_view PROTOCOL_HEADER = R"({ "version": 1 })";
   std::println("{}", PROTOCOL_HEADER);
-  std::fflush(stdout);
   std::println("["); // start the infinite JSON list
   std::fflush(stdout);
 
   while (true) {
     print_status_line();
-    std::this_thread::sleep_for(10s);
+    // TODO: listen to some events in addition to polling
+    std::this_thread::sleep_for(60s);
   }
 }

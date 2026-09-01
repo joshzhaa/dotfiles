@@ -6,6 +6,7 @@ CompileFlags:
     - -Wno-unsafe-buffer-usage-in-container
     - -Wno-unsafe-buffer-usage-in-libc-call
     - -Wno-missing-prototypes
+    - -Wno-exit-time-destructors
     - -std=c++26
     # TODO: raw nix store paths is a bit of hack, no build system is also a hack
     - -fmodule-file=std=/nix/store/9gl528aaiik33kj5j7pa01nhwrbhlljj-std-pcm/std.pcm

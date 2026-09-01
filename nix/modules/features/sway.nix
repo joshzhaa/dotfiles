@@ -16,7 +16,7 @@
       ];
 
       services = {
-        gnome.gnome-keyring.enable = true;
+        # gnome.gnome-keyring.enable = true;
         system76-scheduler.enable = true;
         pipewire.enable = true;
       };

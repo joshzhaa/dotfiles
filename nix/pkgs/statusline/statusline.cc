@@ -1,15 +1,23 @@
 // a basic swaybar status line program.
 
-#include <spawn.h>
-// <stdio.h> needed to get `stdout` which standardized as a preprocessor macro, shockingly
+#include <fcntl.h>    // O_CREAT and friends
+#include <spawn.h>    // posix_spawn
+#include <sys/wait.h> // waitpid()
+// <stdio.h> needed to get `stdout` which is standardized as a preprocessor macro, shockingly
 #include <stdio.h>
+#include <unistd.h> // for pipe2
 
 import std;
 
 /* CONFIGURATION */
 constexpr std::string_view BATTERY_CAPACITY = "/sys/class/power_supply/BAT1/capacity";
 constexpr std::string_view BATTERY_STATUS = "/sys/class/power_supply/BAT1/status";
-constexpr std::string_view VOLUME_COMMAND = "wpctl get-volume @DEFAULT_AUDIO_SINK@";
+constexpr auto VOLUME_COMMAND = std::array{
+  "wpctl",
+  "get-volume",
+  "@DEFAULT_AUDIO_SINK@",
+  static_cast<char const*>(nullptr), // needed to terminate an argv
+};
 constexpr auto TZ_OFFSET = std::chrono::hours{4}; // from system_clock::now()
 
 /* HELPERS */
@@ -22,7 +30,7 @@ void assert(bool condition) {
 
 // RAII wrapper over std::fopen
 struct File {
-  std::FILE *fp;
+  std::FILE* fp;
 
   // this is technically not safe, but I hate fstream and c strings
   File(std::string_view filename) : fp{std::fopen(filename.data(), "r")} { assert(fp); }
@@ -33,7 +41,69 @@ struct File {
 using i32 = std::int32_t;
 using usize = std::size_t;
 
+// as a reminder, argv[0] is the name of the program and argv[-1] is a nullptr.
+// we use posix_spawnp, so argv[0] is looked up in PATH.
+template <usize OUTPUT_BUFSIZE = 128>
+auto spawn_process(std::span<char const* const> argv) -> std::string {
+  struct SpawnParams {
+    posix_spawn_file_actions_t file_actions;
+    posix_spawnattr_t attr;
+
+    std::array<i32, 2> pipe_fd;
+
+    SpawnParams() {
+      posix_spawn_file_actions_init(&this->file_actions);
+      posix_spawnattr_init(&this->attr);
+
+      // pipe2(pipe_fd.data(), O_CLOEXEC);
+
+      // posix_spawn_file_actions_adddup2(&this->file_actions, pipe_fd.at(1), STDOUT_FILENO);
+      // close(pipe_fd[1]);
+      // posix_spawn_file_actions_addclose(&this->file_actions, pipe_fd.at(0));
+      // posix_spawn_file_actions_addclose(&this->file_actions, pipe_fd.at(1));
+    }
+    ~SpawnParams() {
+      // close(pipe_fd[0]);
+
+      posix_spawnattr_destroy(&this->attr);
+      posix_spawn_file_actions_destroy(&this->file_actions);
+    }
+  };
+
+  auto params = SpawnParams{};
+
+  posix_spawn_file_actions_addopen(
+    &params.file_actions,
+    1,
+    "output.txt",
+    O_WRONLY | O_CREAT | O_TRUNC,
+    0644 //
+  );
+
+  extern char** environ; // TODO: find out which TU is defining this
+  auto pid = pid_t{};
+  i32 error = posix_spawnp(
+    &pid,
+    argv.at(0),
+    &params.file_actions,
+    &params.attr,
+    const_cast<char* const*>(argv.data()), // posix_spawn takes non-const char pointers, so evil.
+    environ
+  );
+  assert(error == 0);
+
+  i32 status;
+  waitpid(pid, &status, 0);
+
+  return {};
+}
+
 /* "BUSINESS-LOGIC" COMPONENTS */
+
+[[nodiscard]]
+auto audio_volume() -> std::string {
+  return spawn_process(VOLUME_COMMAND);
+}
 
 [[nodiscard]]
 auto battery_charge() -> std::string {
@@ -116,7 +186,7 @@ void print_status_line() {
   std::fflush(stdout);
 }
 
-auto main(int argc, char **argv) -> int {
+auto main(int argc, char** argv) -> int {
   using namespace std::chrono_literals;
   // TODO: do we actually need args?
   auto args = std::span{argv, static_cast<std::size_t>(argc)};

@@ -1,0 +1,6 @@
+font=JetBrainsMono Nerd Font Propo 11
+background-color=#1e1e2e
+border-color=#b4befe
+
+# milliseconds
+default-timeout=10000

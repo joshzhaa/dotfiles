@@ -29,3 +29,4 @@ symlink ghostty ~/.config/ghostty
 symlink zsh/zshrc ~/.zshrc
 symlink starship.toml ~/.config/starship.toml
 symlink sway ~/.config/sway
+symlink mako ~/.config/mako

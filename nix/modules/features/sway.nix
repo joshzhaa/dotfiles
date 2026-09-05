@@ -12,7 +12,7 @@
         # TODO: is this necessary?
         # wl-clipboard # clipboard, obviously
         mako # notifications
-        # self'.packages.statusline # TODO : fix the packaging here
+        self'.packages.statusline
       ];
 
       services = {

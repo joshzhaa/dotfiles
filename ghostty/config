@@ -1,5 +1,5 @@
 theme = Catppuccin Mocha
-font-family = "Hack Nerd Font Mono"
+font-family = "JetBrainsMono Nerd Font"
 window-padding-x = 5
 window-padding-y = 5
 
@@ -13,3 +13,32 @@ scrollback-limit = 100000000
 keybind = ctrl+space>c=new_tab
 keybind = ctrl+space>n=next_tab
 keybind = ctrl+space>p=previous_tab
+
+# tmux style panes
+keybind = ctrl+space>shift+"=new_split:down
+keybind = ctrl+space>shift+%=new_split:right
+
+keybind = ctrl+space>h=goto_split:left
+keybind = ctrl+space>j=goto_split:bottom
+keybind = ctrl+space>k=goto_split:top
+keybind = ctrl+space>l=goto_split:right
+
+# tmux like "copy mode"
+# entrypoint
+keybind = ctrl+space>[=activate_key_table:vim
+# key table
+keybind = vim/
+
+keybind = vim/j=scroll_page_lines:1
+keybind = vim/k=scroll_page_lines:-1
+keybind = vim/ctrl+d=scroll_page_fractional:0.5
+keybind = vim/ctrl+u=scroll_page_fractional:-0.5
+
+# ghostty keybinds don't support actually copying in copy mode
+# this also does not work in sway
+# keybind = vim/y=write_scrollback_file:open
+
+# exit point
+keybind = vim/escape=deactivate_key_table
+
+keybind = ctrl+space>shift+semicolon=toggle_command_palette

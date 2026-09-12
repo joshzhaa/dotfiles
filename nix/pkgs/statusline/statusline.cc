@@ -205,7 +205,7 @@ auto battery_charge() -> std::string {
   usize capacity = read_capacity_file();
   auto status = read_status_file();
 
-  auto icon_index = std::clamp(capacity / 20uz, 0uz, ICONS.size());
+  auto icon_index = std::clamp(capacity / 20uz, 0uz, ICONS.size() - 1);
   bool is_charging = status == "Charging";
 
   return std::format(
